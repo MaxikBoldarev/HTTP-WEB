@@ -28,12 +28,22 @@ public class MessageProcessor implements Runnable {
             final var requestLine = in.readLine();
             final var parts = requestLine.split(" ");
 
-
             if (parts.length != 3) {
                 return;
             }
 
-            final var path = parts[1];
+            final String method = parts[0];
+            final String path = parts[1];
+            final String body = parts[2];
+
+            Request request = new Request(method, path, body);
+
+            Handler handler = Server.getHandler(method, path);
+            if (handler != null) {
+                handler.handle(request, out);
+            }
+            out.flush();
+
             if (!validPaths.contains(path)) {
                 out.write((
                         "HTTP/1.1 404 Not Found\r\n" +
@@ -42,23 +52,7 @@ public class MessageProcessor implements Runnable {
                                 "\r\n"
                 ).getBytes());
                 out.flush();
-                return;
             }
-
-            final var filePath = Path.of(".", "public", path);
-            final var mimeType = Files.probeContentType(filePath);
-
-
-            final var length = Files.size(filePath);
-            out.write((
-                    "HTTP/1.1 200 OK\r\n" +
-                            "Content-Type: " + mimeType + "\r\n" +
-                            "Content-Length: " + length + "\r\n" +
-                            "Connection: close\r\n" +
-                            "\r\n"
-            ).getBytes());
-            Files.copy(filePath, out);
-            out.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
