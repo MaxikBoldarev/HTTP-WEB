@@ -5,8 +5,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.net.URI;
 import java.util.List;
 
 public class MessageProcessor implements Runnable {
@@ -34,17 +33,16 @@ public class MessageProcessor implements Runnable {
 
             final String method = parts[0];
             final String path = parts[1];
-            final String body = parts[2];
 
-            Request request = new Request(method, path, body);
+            Request request = new Request(parts[0], URI.create(path));
 
-            Handler handler = Server.getHandler(method, path);
+            Handler handler = Server.getHandler(method, request.getUri().getPath());
             if (handler != null) {
                 handler.handle(request, out);
             }
             out.flush();
 
-            if (!validPaths.contains(path)) {
+            if (!validPaths.contains(request.getUri().getPath())) {
                 out.write((
                         "HTTP/1.1 404 Not Found\r\n" +
                                 "Content-Length: 0\r\n" +

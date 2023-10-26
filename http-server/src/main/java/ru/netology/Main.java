@@ -18,7 +18,7 @@ public class Main {
 
     public static Handler handlerAsClassicHtml() {
         Handler handler = (request, bos) -> {
-            Path filePath = Path.of(".", "public", request.getPath());
+            Path filePath = Path.of(".", "public", request.getUri().getPath());
             try {
                 final String template = Files.readString(filePath);
                 final String mimeType = Files.probeContentType(filePath);
@@ -44,7 +44,7 @@ public class Main {
 
     public static Handler handlerAsOtherPath() {
         Handler handler = (request, bos) -> {
-            Path filePath = Path.of(".", "public", request.getPath());
+            Path filePath = Path.of(".", "public", request.getUri().getPath());
             try {
                 final String mimeType = Files.probeContentType(filePath);
                 final long length = Files.size(filePath);
